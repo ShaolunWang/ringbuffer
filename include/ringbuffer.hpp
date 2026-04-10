@@ -42,7 +42,7 @@ public:
    * @param elem
    */
   template <typename U>
-  void emplace(U &&v)
+  bool emplace(U &&v)
     requires std::constructible_from<T, U &&>
   // enforcing T to be constructible from U
   // allows us to perfect foward without having to worry about the types
@@ -66,7 +66,7 @@ public:
 
     if ((current_tail + 1) % m_capacity ==
         m_head.load(std::memory_order_acquire)) {
-      return;
+      return false;
     }
 
     if constexpr (std::is_trivially_constructible_v<T, U &&>) {
@@ -84,6 +84,7 @@ public:
     // this will make sure that the placement new always
     // happens before the store
     m_tail.store((current_tail + 1) % m_capacity, std::memory_order_release);
+    return true;
   }
 
   /**
@@ -109,10 +110,11 @@ public:
     }
 
     m_head.store((current_head + 1) % m_capacity, std::memory_order_release);
+    return out;
   };
 
 private:
-  std::unique_ptr<T> m_container;
+  T* m_container;
   // get the machine cache line size
   // so that we don't get cache
 #ifdef __cpp_lib_hardware_interference_size

@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.15...4.0)
 
 project(
- lockfree 
+  ringbuffer 
   VERSION 0.1
-  DESCRIPTION "lock-free"
+  DESCRIPTION "lock-free ringbuffer"
   LANGUAGES CXX)
 
 
@@ -53,16 +53,4 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   endif()
 endif()
 
-include(FetchContent)
-FetchContent_Declare(
-  fmtlib
-  GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-  GIT_TAG 12.1.0
-  GIT_SHALLOW TRUE
-)
-
-FetchContent_MakeAvailable(fmtlib)
-
-
-add_subdirectory(src)
 add_subdirectory(test)
