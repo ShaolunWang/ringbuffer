@@ -112,9 +112,13 @@ public:
     m_head.store((current_head + 1) % m_capacity, std::memory_order_release);
     return out;
   };
+  bool empty() const {
+    return m_head.load(std::memory_order_acquire) ==
+           m_tail.load(std::memory_order_acquire);
+  }
 
 private:
-  T* m_container;
+  T *m_container;
   // get the machine cache line size
   // so that we don't get cache
 #ifdef __cpp_lib_hardware_interference_size

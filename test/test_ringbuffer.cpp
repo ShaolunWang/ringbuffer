@@ -1,4 +1,4 @@
-#include "ringbuffer.hpp"
+#include "ringbuffer/ringbuffer.hpp"
 #include "gtest/gtest.h"
 #include <atomic>
 #include <thread>

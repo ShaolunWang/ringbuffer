@@ -1,4 +1,18 @@
 ################## add test lib #########################
+if(CMAKE_BUILD_TYPE MATCHES Debug)
+	set(CMAKE_INTERPROCEDURAL_OPTIMIZATION FALSE)
+	add_compile_definitions(Debug)
+	add_compile_options(-fsanitize=address,undefined -g)
+	add_link_options(-fsanitize=address)
+endif()
+
+if(CMAKE_BUILD_TYPE MATCHES THREAD)
+	set(CMAKE_INTERPROCEDURAL_OPTIMIZATION FALSE)
+	add_compile_definitions(Debug)
+	add_compile_options(-fsanitize=thread -g)
+	add_link_options(-fsanitize=thread)
+endif()
+
 if(CMAKE_BUILD_TYPE MATCHES Debug OR 
 	CMAKE_BUILD_TYPE MATCHES THREAD)
 	include(FetchContent)
@@ -17,8 +31,11 @@ if(CMAKE_BUILD_TYPE MATCHES Debug OR
 	)
 	target_link_libraries(test_ringbuffer
 			GTest::gtest_main
+			ringbuffer
 	)
-	target_include_directories(test_ringbuffer PUBLIC ../include)
+	target_compile_features(test_ringbuffer PRIVATE cxx_std_23)
+	
+
 
 	include(GoogleTest)
 	gtest_discover_tests(test_ringbuffer)

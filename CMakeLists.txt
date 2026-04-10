@@ -7,28 +7,15 @@ project(
   LANGUAGES CXX)
 
 
+option(RINGBUFFER_BUILD_TESTS "Build tests" OFF)
 
-set(CMAKE_CXX_STANDARD 23)
-
-
-set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
-if(CMAKE_BUILD_TYPE MATCHES Debug)
-	set(CMAKE_INTERPROCEDURAL_OPTIMIZATION FALSE)
-	add_compile_definitions(Debug)
-	add_compile_options(-fsanitize=address,undefined -g)
-	add_link_options(-fsanitize=address)
-endif()
-
-if(CMAKE_BUILD_TYPE MATCHES THREAD)
-	set(CMAKE_INTERPROCEDURAL_OPTIMIZATION FALSE)
-	add_compile_definitions(Debug)
-	add_compile_options(-fsanitize=thread -g)
-	add_link_options(-fsanitize=thread)
+if(PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
+    set(RINGBUFFER_BUILD_TESTS ON)
 endif()
 
 
 # Only do these if this is the main project, and not if it is included through add_subdirectory
-if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+if(RINGBUFFER_BUILD_TESTS)
 
   # Optionally set things like CMAKE_CXX_STANDARD, CMAKE_POSITION_INDEPENDENT_CODE here
 
@@ -53,3 +40,52 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   endif()
   add_subdirectory(test)
 endif()
+
+add_library(ringbuffer INTERFACE)
+add_library(ringbuffer::ringbuffer ALIAS ringbuffer)
+
+target_include_directories(ringbuffer
+    INTERFACE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+)
+target_compile_features(ringbuffer INTERFACE cxx_std_23)
+
+include(GNUInstallDirs)
+
+install(
+    TARGETS ringbuffer
+    EXPORT ringbuffer_targets
+)
+
+install(
+    DIRECTORY include/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+install(
+    EXPORT ringbuffer_targets
+    FILE ringbufferTargets.cmake
+    NAMESPACE ringbuffer::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/ringbuffer
+)
+
+include(CMakePackageConfigHelpers)
+
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/ringbuffer-config-version.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
+)
+
+configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ringbuffer-config.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/ringbuffer-config.cmake"
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/ringbuffer
+)
+
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/ringbuffer-config.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/ringbuffer-config-version.cmake"
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/ringbuffer
+)
