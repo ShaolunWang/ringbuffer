@@ -130,7 +130,17 @@ private:
   // we want to align them so that we don't
   // really get false sharing
   // making sure m_head and m_tail are not on the same cacheline
-  alignas(cache_line_size) std::atomic<int> m_head;
-  alignas(cache_line_size) std::atomic<int> m_tail;
+  alignas(cache_line_size) std::atomic<unsigned int> m_head;
+  alignas(cache_line_size) std::atomic<unsigned int> m_tail;
+
+  // learned this trick from folly - previous alignas
+  // only make sure that the variable starts on the next line,
+  // it is not guaranteed that it will fully occupy the line
+  // this padding will add *garbage* to the line so that tail is the
+  // only (interesting) object on this cacheline
+  //
+  // since we are also not modifying the padding, it won't invalidate
+  // the cache either
+  char padding[cache_line_size - sizeof(std::atomic<unsigned int>)];
   const size_t m_capacity;
 };
